@@ -59,6 +59,7 @@ export default (signedIn = false) =>
           },
           {
             // defaultNavigationOptions: ({ navigation }) => ({
+            resetOnBlur: true,
             tabBarOptions: {
               keyboardHidesTabBar: true,
               activeTintColor: '#FFF',

@@ -1,8 +1,62 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import api from '~/services/api';
+import Background from '~/components/Background';
+import DateInput from '~/components/DateInput';
+import { Container, HourList, Hour, Title } from './styles';
 
-// import { Container } from './styles';
+export default function SelectDateTime({ navigation }) {
+  const [date, setDate] = useState(new Date());
+  const [hours, setHours] = useState([]);
+  const provider = navigation.getParam('provider');
+  useEffect(() => {
+    async function loadAvailable() {
+      const response = await api.get(`providers/${provider.id}/available`, {
+        params: {
+          date: date.getTime(),
+        },
+      });
 
-export default function SelectDateTime() {
-  return <View />;
+      setHours(response.data);
+    }
+    loadAvailable();
+  }, [date, provider.id]);
+  function handleSelectHour(time) {
+    navigation.navigate('Confirm', { provider, time });
+  }
+  return (
+    <Background>
+      <Container>
+        <DateInput date={date} onChange={setDate} />
+
+        <HourList
+          data={hours}
+          extraData={date}
+          keyExtractor={item => item.time}
+          renderItem={({ item }) => (
+            <Hour
+              onPress={() => handleSelectHour(item.value)}
+              enabled={item.available}
+            >
+              <Title>{item.time}</Title>
+            </Hour>
+          )}
+        />
+      </Container>
+    </Background>
+  );
 }
+
+SelectDateTime.navigationOptions = ({ navigation }) => ({
+  title: 'Selecione a hora',
+  headerLeft: () => (
+    <TouchableOpacity
+      onPress={() => {
+        navigation.goBack();
+      }}
+    >
+      <Icon name="chevron-left" size={20} color="#fff" />
+    </TouchableOpacity>
+  ),
+});
